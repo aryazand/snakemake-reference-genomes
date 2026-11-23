@@ -1,0 +1,32 @@
+data:
+  cmv:
+    source: "ncbi" # local vs ncbi database
+    local:
+      fasta: 
+      gff:
+    ncbi:
+      genbank: "KF297339.1"
+      assembly: ""
+      extra: ""
+  human:
+    source: "local" # local vs ncbi database
+    local:
+      fasta: "data/chrMT.fna"
+      gff: "data/chrMT.gff"
+    ncbi:
+      genbank:
+      assembly:
+      extra: 
+
+genomes:
+  cmv_MT:
+    species: ["cmv", "human"]
+    prefix:
+      cmv: "CMV"
+      human: "HUMAN"
+    asset: 
+      bowtie2: ""
+      star: ""
+      minimap2: ""
+      bwamem2: ""
+      fai: ""

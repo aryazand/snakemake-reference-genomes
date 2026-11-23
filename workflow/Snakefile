@@ -1,0 +1,37 @@
+# load configuration
+# -----------------------------------------------------
+configfile: "config/config.yml"
+
+
+# load rules
+# -----------------------------------------------------
+include: "rules/common.smk"
+include: "rules/get_genomes.smk"
+include: "rules/prepare_genomes.smk"
+include: "rules/bowtie2.smk"
+include: "rules/bwamem2.smk"
+include: "rules/star.smk"
+include: "rules/minimap2.smk"
+
+
+# optional messages, log and error handling
+# -----------------------------------------------------
+onstart:
+    print("\n--- Analysis started ---\n")
+
+
+onsuccess:
+    print("\n--- Workflow finished! ---\n")
+
+
+onerror:
+    print("\n--- An error occurred! ---\n")
+
+
+# target rules
+# -----------------------------------------------------
+
+rule all:
+    default_target: True
+    input:
+        all_asset_targets()

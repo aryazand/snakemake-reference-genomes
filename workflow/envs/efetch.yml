@@ -1,0 +1,7 @@
+name: efetch
+channels:
+  - bioconda
+  - conda-forge
+  - nodefaults
+dependencies:
+  - entrez-direct=26.0
