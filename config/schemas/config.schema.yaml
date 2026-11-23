@@ -1,0 +1,158 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+title: "snakemake-reference-genomes configuration"
+description: "Validation schema for config/config.yml (and .test/config/config.yml)."
+type: object
+required:
+  - data
+  - genomes
+additionalProperties: false
+properties:
+  data:
+    type: object
+    description: "Reference sources keyed by genome name. Keys are used as Snakemake wildcard values in file paths."
+    minProperties: 1
+    propertyNames:
+      pattern: "^[A-Za-z0-9_]+$"
+    additionalProperties:
+      $ref: "#/definitions/reference"
+  genomes:
+    type: object
+    description: "Combined genome assets keyed by name. Each entry lists the species to concatenate and the assets to build."
+    minProperties: 1
+    propertyNames:
+      pattern: "^[A-Za-z0-9_]+$"
+    additionalProperties:
+      $ref: "#/definitions/genome"
+
+definitions:
+  reference:
+    type: object
+    description: "Source of one reference genome: a local file or an NCBI download."
+    required:
+      - source
+      - local
+      - ncbi
+    additionalProperties: false
+    properties:
+      source:
+        description: "Where the reference is obtained from."
+        enum:
+          - local
+          - ncbi
+      local:
+        type: object
+        required:
+          - fasta
+          - gff
+        additionalProperties: false
+        properties:
+          fasta:
+            type:
+              - string
+              - "null"
+            description: "Path to a local FASTA file. Required when source is local."
+          gff:
+            type:
+              - string
+              - "null"
+            description: "Path to a local GFF file. Required when source is local."
+      ncbi:
+        type: object
+        required:
+          - genbank
+          - assembly
+          - extra
+        additionalProperties: false
+        properties:
+          genbank:
+            type:
+              - string
+              - "null"
+            description: "GenBank/RefSeq nucleotide accession, resolved to an assembly with efetch. Empty if assembly is given."
+            pattern: "^$|^[A-Z]{1,4}_?[0-9]{5,}(\\.[0-9]+)?$"
+          assembly:
+            type:
+              - string
+              - "null"
+            description: "NCBI assembly accession (GCA_ or GCF_). Takes precedence over genbank."
+            pattern: "^$|^GC[AF]_[0-9]{9}\\.[0-9]+$"
+          extra:
+            type:
+              - string
+              - "null"
+            description: "Extra command-line arguments passed to `datasets download genome`."
+    if:
+      properties:
+        source:
+          const: local
+      required:
+        - source
+    then:
+      properties:
+        local:
+          required:
+            - fasta
+            - gff
+          properties:
+            fasta:
+              type: string
+              minLength: 1
+            gff:
+              type: string
+              minLength: 1
+    else:
+      properties:
+        ncbi:
+          anyOf:
+            - required:
+                - genbank
+              properties:
+                genbank:
+                  type: string
+                  minLength: 1
+            - required:
+                - assembly
+              properties:
+                assembly:
+                  type: string
+                  minLength: 1
+          description: "Required when source is ncbi: a non-empty genbank or assembly accession."
+
+  genome:
+    type: object
+    description: "One combined genome asset: species to concatenate, prefixes to apply, and index types to build."
+    required:
+      - species
+      - prefix
+      - asset
+    additionalProperties: false
+    properties:
+      species:
+        type: array
+        description: "Reference keys (from data) to combine. Each must exist in data; this is not checked by JSON Schema."
+        minItems: 1
+        uniqueItems: true
+        items:
+          type: string
+          pattern: "^[A-Za-z0-9_]+$"
+      prefix:
+        type: object
+        description: "Contig-name prefix per species. Every species needs an entry; the empty string disables prefixing. Note that the rules append an underscore, so 'CMV_' yields 'CMV__<contig>'."
+        additionalProperties:
+          type: string
+          pattern: "^[A-Za-z0-9_.-]*$"
+      asset:
+        type: object
+        description: "Index types to build. Each value is passed as extra arguments to the tool (empty string for none)."
+        additionalProperties: false
+        properties:
+          bowtie2:
+            type: string
+          star:
+            type: string
+          minimap2:
+            type: string
+          bwamem2:
+            type: string
+          fai:
+            type: string
